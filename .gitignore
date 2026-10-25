@@ -1,0 +1,4 @@
+build/
+*.xcodeproj
+TimesTable/Info.plist
+.DS_Store

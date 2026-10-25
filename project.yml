@@ -1,0 +1,40 @@
+name: TimesTable
+options:
+  bundleIdPrefix: com.rashid
+  deploymentTarget:
+    iOS: "16.0"
+  createIntermediateGroups: true
+  generateEmptyDirectories: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    CODE_SIGNING_ALLOWED: "NO"
+    CODE_SIGNING_REQUIRED: "NO"
+    CODE_SIGN_IDENTITY: ""
+
+targets:
+  TimesTable:
+    type: application
+    platform: iOS
+    sources:
+      - path: TimesTable
+    info:
+      path: TimesTable/Info.plist
+      properties:
+        CFBundleDisplayName: جدول الضرب
+        CFBundleDevelopmentRegion: ar
+        CFBundleLocalizations: [ar, en]
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        UIApplicationSupportsIndirectInputEvents: true
+        ITSAppUsesNonExemptEncryption: false
+    settings:
+      base:
+        PRODUCT_NAME: TimesTable
+        PRODUCT_BUNDLE_IDENTIFIER: com.rashid.timestable
+        TARGETED_DEVICE_FAMILY: "1"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        GENERATE_INFOPLIST_FILE: "NO"
