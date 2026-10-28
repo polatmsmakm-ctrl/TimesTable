@@ -29,12 +29,15 @@ struct DrillView: View {
             Theme.bg.ignoresSafeArea()
             VStack(spacing: 14) {
                 header
-                Picker("المجموعة", selection: $store.mode) {
-                    ForEach(PoolMode.allCases, id: \.self) { m in
-                        Text(m.title).tag(m)
+                chips
+                if store.focus == 0 {
+                    Picker("المجموعة", selection: $store.mode) {
+                        ForEach(PoolMode.allCases, id: \.self) { m in
+                            Text(m.title).tag(m)
+                        }
                     }
+                    .pickerStyle(.segmented)
                 }
-                .pickerStyle(.segmented)
 
                 Spacer(minLength: 0)
                 equation
@@ -53,6 +56,10 @@ struct DrillView: View {
             retryKey = nil
             next()
         }
+        .onChange(of: store.focus) { _ in
+            retryKey = nil
+            next()
+        }
     }
 
     // MARK: الأجزاء
@@ -63,7 +70,7 @@ struct DrillView: View {
                 Text("تدريب الاسترجاع")
                     .font(.system(size: 26, weight: .heavy))
                     .foregroundColor(Theme.text)
-                Text("اكتب الناتج من ذاكرتك دون حساب")
+                Text(store.focus == 0 ? "اكتب الناتج من ذاكرتك دون حساب" : "جدول \(store.focus): الإتقان \(Int((store.mastery * 100).rounded()))%")
                     .font(.system(size: 14))
                     .foregroundColor(Theme.dim)
             }
@@ -76,6 +83,31 @@ struct DrillView: View {
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(Theme.gold)
             }
+        }
+    }
+
+    private var chips: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                chip("مخلوط", 0)
+                ForEach(2...9, id: \.self) { n in
+                    chip("جدول \(n)", n)
+                }
+            }
+        }
+    }
+
+    private func chip(_ title: String, _ n: Int) -> some View {
+        let on = store.focus == n
+        return Button(action: { store.focus = n }) {
+            Text(title)
+                .font(.system(size: 15, weight: .bold))
+                .foregroundColor(on ? Color(hex: 0x1A1305) : Theme.text)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .background(on ? Theme.gold : Theme.card)
+                .clipShape(Capsule())
+                .overlay(Capsule().stroke(Theme.line, lineWidth: 1))
         }
     }
 
@@ -220,7 +252,11 @@ struct DrillView: View {
         let f = chosen ?? store.pick(excluding: lastKey)
         fact = f
         lastKey = f.key
-        flipped = Bool.random()
+        if store.focus >= 2 {
+            flipped = (f.a != store.focus)
+        } else {
+            flipped = Bool.random()
+        }
         started = Date()
     }
 }

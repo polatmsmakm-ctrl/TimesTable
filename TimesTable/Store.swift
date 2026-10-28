@@ -52,6 +52,11 @@ final class Store: ObservableObject {
         didSet { UserDefaults.standard.set(mode.rawValue, forKey: "mode") }
     }
 
+    /// 0 = مخلوط حسب المجموعة، وإلا رقم الجدول المختار (2...10)
+    @Published var focus: Int = 0 {
+        didSet { UserDefaults.standard.set(focus, forKey: "focus") }
+    }
+
     private let ud = UserDefaults.standard
 
     init() {
@@ -62,6 +67,8 @@ final class Store: ObservableObject {
         if let m = ud.string(forKey: "mode"), let pm = PoolMode(rawValue: m) {
             mode = pm
         }
+        let fo = ud.integer(forKey: "focus")
+        if fo >= 2 && fo <= 10 { focus = fo }
     }
 
     private func save() {
@@ -85,6 +92,9 @@ final class Store: ObservableObject {
     static let coreFacts: [Fact] = allFacts.filter { $0.isCore }
 
     var pool: [Fact] {
+        if focus >= 2 && focus <= 10 {
+            return (1...10).map { Fact(focus, $0) }
+        }
         return mode == .core ? Store.coreFacts : Store.allFacts
     }
 
@@ -145,6 +155,9 @@ final class Store: ObservableObject {
 
 enum Tricks {
     static func hint(for f: Fact) -> String {
+        if f.a == 1 {
+            return "الضرب في 1 يبقي العدد: " + ltr("1 × \(f.b) = \(f.b)")
+        }
         let order = [10, 2, 5, 9, 4, 3, 8, 6]
         for t in order where f.a == t || f.b == t {
             let n = (f.a == t) ? f.b : f.a
