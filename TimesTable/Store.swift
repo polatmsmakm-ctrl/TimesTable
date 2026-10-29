@@ -57,6 +57,20 @@ final class Store: ObservableObject {
         didSet { UserDefaults.standard.set(focus, forKey: "focus") }
     }
 
+    /// أفضل نتيجة (من 10) لاختبار كل جدول، المفتاح هو رقم الجدول
+    @Published var scores: [String: Int] = [:] {
+        didSet {
+            if let d = try? JSONEncoder().encode(scores) {
+                UserDefaults.standard.set(d, forKey: "scores")
+            }
+        }
+    }
+    @Published var unlockAll: Bool = false {
+        didSet { UserDefaults.standard.set(unlockAll, forKey: "unlockAll") }
+    }
+
+    static let passMark = 9
+
     private let ud = UserDefaults.standard
 
     init() {
@@ -67,6 +81,11 @@ final class Store: ObservableObject {
         if let m = ud.string(forKey: "mode"), let pm = PoolMode(rawValue: m) {
             mode = pm
         }
+        if let d = ud.data(forKey: "scores"),
+           let sc = try? JSONDecoder().decode([String: Int].self, from: d) {
+            scores = sc
+        }
+        unlockAll = ud.bool(forKey: "unlockAll")
         let fo = ud.integer(forKey: "focus")
         if fo >= 2 && fo <= 10 { focus = fo }
     }
@@ -146,8 +165,16 @@ final class Store: ObservableObject {
     var totalAnswers: Int { entries.values.reduce(0) { $0 + $1.seen } }
     var totalRight: Int { entries.values.reduce(0) { $0 + $1.right } }
 
+    func best(_ n: Int) -> Int { scores["\(n)"] ?? 0 }
+    func isPassed(_ n: Int) -> Bool { best(n) >= Store.passMark }
+    func isUnlocked(_ n: Int) -> Bool { unlockAll || n <= 2 || isPassed(n - 1) }
+    func submitScore(_ n: Int, _ s: Int) {
+        if s > best(n) { scores["\(n)"] = s }
+    }
+
     func reset() {
         entries = [:]
+        scores = [:]
     }
 }
 

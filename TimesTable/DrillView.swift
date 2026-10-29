@@ -18,6 +18,8 @@ struct DrillView: View {
     @State private var correctCount = 0
     @State private var streak = 0
     @State private var hint = ""
+    @State private var showTest = false
+    @State private var lockedTable = 0
 
     private var left: Int { flipped ? fact.b : fact.a }
     private var right: Int { flipped ? fact.a : fact.b }
@@ -30,6 +32,9 @@ struct DrillView: View {
             VStack(spacing: 14) {
                 header
                 chips
+                if store.focus >= 2 {
+                    testButton
+                }
                 if store.focus == 0 {
                     Picker("المجموعة", selection: $store.mode) {
                         ForEach(PoolMode.allCases, id: \.self) { m in
@@ -59,6 +64,17 @@ struct DrillView: View {
         .onChange(of: store.focus) { _ in
             retryKey = nil
             next()
+        }
+        .fullScreenCover(isPresented: $showTest) {
+            TestView(table: store.focus)
+                .environmentObject(store)
+                .environment(\.layoutDirection, .rightToLeft)
+                .preferredColorScheme(.dark)
+        }
+        .alert("الجدول مقفل", isPresented: Binding(get: { lockedTable > 0 }, set: { if !$0 { lockedTable = 0 } })) {
+            Button("حسنًا", role: .cancel) {}
+        } message: {
+            Text("اجتز اختبار جدول \(lockedTable - 1) أولًا بنتيجة \(Store.passMark) من 10.")
         }
     }
 
@@ -99,15 +115,43 @@ struct DrillView: View {
 
     private func chip(_ title: String, _ n: Int) -> some View {
         let on = store.focus == n
-        return Button(action: { store.focus = n }) {
-            Text(title)
-                .font(.system(size: 15, weight: .bold))
-                .foregroundColor(on ? Color(hex: 0x1A1305) : Theme.text)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 8)
-                .background(on ? Theme.gold : Theme.card)
-                .clipShape(Capsule())
-                .overlay(Capsule().stroke(Theme.line, lineWidth: 1))
+        let locked = n >= 2 && !store.isUnlocked(n)
+        let star = n >= 2 && store.isPassed(n)
+        return Button(action: {
+            if locked { lockedTable = n } else { store.focus = n }
+        }) {
+            HStack(spacing: 4) {
+                Text(title)
+                if locked { Image(systemName: "lock.fill") }
+                if star { Image(systemName: "star.fill") }
+            }
+            .font(.system(size: 15, weight: .bold))
+            .foregroundColor(on ? Color(hex: 0x1A1305) : (locked ? Theme.dim : Theme.text))
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background(on ? Theme.gold : Theme.card)
+            .clipShape(Capsule())
+            .overlay(Capsule().stroke(Theme.line, lineWidth: 1))
+        }
+    }
+
+    private var testButton: some View {
+        Button(action: { showTest = true }) {
+            HStack(spacing: 8) {
+                Image(systemName: "checkmark.seal.fill")
+                Text("اختبار جدول \(store.focus)")
+                if store.best(store.focus) > 0 {
+                    Text("(أفضل نتيجة \(store.best(store.focus)) من 10)")
+                        .font(.system(size: 13))
+                }
+            }
+            .font(.system(size: 16, weight: .bold))
+            .foregroundColor(Theme.teal)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 10)
+            .background(Theme.card)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Theme.teal.opacity(0.6), lineWidth: 1))
         }
     }
 

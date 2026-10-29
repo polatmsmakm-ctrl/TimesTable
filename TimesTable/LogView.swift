@@ -38,6 +38,28 @@ struct LogView: View {
                         stat("الدقة", accuracy, Theme.teal)
                     }
 
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("اختبارات الجداول")
+                            .font(.system(size: 18, weight: .heavy))
+                            .foregroundColor(Theme.gold)
+                        ForEach(2...9, id: \.self) { n in
+                            HStack {
+                                Text("جدول \(n)").foregroundColor(Theme.text)
+                                Spacer()
+                                if store.isPassed(n) {
+                                    Image(systemName: "star.fill").foregroundColor(Theme.gold)
+                                }
+                                Text(store.best(n) > 0 ? "\(store.best(n)) من 10" : "لم يُختبر")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundColor(store.isPassed(n) ? Theme.green : Theme.dim)
+                            }
+                        }
+                        Toggle("فتح كل الجداول بدون اختبار", isOn: $store.unlockAll)
+                            .tint(Theme.teal)
+                            .foregroundColor(Theme.dim)
+                    }
+                    .card()
+
                     if mistakes.isEmpty {
                         Text("لا أخطاء مسجلة بعد. ابدأ التدريب.")
                             .foregroundColor(Theme.dim)
